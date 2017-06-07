@@ -37,8 +37,8 @@ void getAttributeForPGM(char *dest,FILE *f)
 
 void changeToOpositeGrayAndSave(ImageInfo *info, char * newFileName)
 {
-	FILE* newFile_;
-	if (newFile_=fopen(newFileName,"wb"))
+	FILE* newFile_=fopen(newFileName,"wb");
+	if (newFile_)
 	{
 		fprintf(newFile_,"%s",info->fileType_);            
 	    fprintf(newFile_,"%d %d\n",info->width_,info->height_);       
@@ -72,7 +72,7 @@ ImageInfo getImageInfo(FILE *fileSource)
 
 void readImageData(FILE *fileSource,ImageInfo* info)
 {
-	info->imageData_ = malloc(sizeof(unsigned char *)*info->width_);
+	info->imageData_ = (unsigned char **)malloc(sizeof(unsigned char *)*info->width_);
 	for (int r = 0; r < info->width_; ++r)
 	{
 		info->imageData_[r] = (unsigned char*)malloc(sizeof(unsigned char)*info->height_);
@@ -90,10 +90,8 @@ ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,i
 {
 	ImageFolderInfo folderInfo_ = getFolderInfo(fileCount);
 	folderInfo_.fileCount_ = fileCount;
-	int width,height=0;
-
-	FILE* labelFile;
-	if (labelFile=fopen(realNumberFileName,"rb"))
+	FILE* labelFile=fopen(realNumberFileName,"rb");
+	if (labelFile)
 	{
 		for (int i = 0; i < fileCount; ++i)
 		{
@@ -110,8 +108,8 @@ ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,i
 		char fileName_[120];
 		sprintf(fileName_,fileFormat,(fromNum+i));
 		///  file index is (index+fromNum) cause folder testdata 1000 the first index is from 2000 to 2999 all 1000 files
-		FILE *file;
-		if (file=fopen(fileName_,"rb"))
+		FILE *file=fopen(fileName_,"rb");
+		if (file)
 		{
 			folderInfo_.imageArray_[i] = getImageInfo(file);
 			folderInfo_.imageArray_[i].label_ = folderInfo_.numberLabel_[i];
@@ -131,16 +129,16 @@ ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,i
 ImageFolderInfo getFolderInfo(int fileCount)
 {
 	ImageFolderInfo Info;
-	Info.imageArray_= malloc(sizeof(ImageInfo)*fileCount);
-	Info.numberLabel_ = malloc(sizeof(int)*fileCount);
-	Info.isSuccess_ = malloc(sizeof(int)*fileCount);
+	Info.imageArray_= (ImageInfo *)malloc(sizeof(ImageInfo)*fileCount);
+	Info.numberLabel_ = (int *)malloc(sizeof(int)*fileCount);
+	Info.isSuccess_ = (int *)malloc(sizeof(int)*fileCount);
 	return Info;
 }
 
 void normalizationForFile(ImageInfo* source)
 {
 	double sum_ = 0.0;
-	source->vectorArray_ = malloc(sizeof(double)*source->width_*source->height_);
+	source->vectorArray_ = (double *)malloc(sizeof(double)*source->width_*source->height_);
 	for (int i = 0; i < source->width_; ++i)
 	{
 		for (int j = 0; j < source->height_; ++j)
@@ -206,7 +204,6 @@ void caculateNearestKPoint(ImageInfo *info, ImageFolderInfo* trainDataInfo)
 int showResultForTestImage(ImageInfo *info)
 {
 	int result[10] = {0,0,0,0,0,0,0,0,0,0};
-	int index = 0;
 	for (int i = 0; i < K; ++i)
 	{
 		ImageInfo* trainDataInfo = info->savedK_Point_[i];
@@ -233,7 +230,6 @@ int showResultForTestImage(ImageInfo *info)
 	// {
 	// 	printf("count for index %d is %d\n",i, result[i]);
 	// }
-	float percent = (float)(maxCnt)/20.0;
 	char* isCorrect = "true";
 	int returnValue = 1;
 	if (info->label_ != predictNum)
@@ -249,9 +245,9 @@ int showResultForTestImage(ImageInfo *info)
 
 void changeImage_1()
 {
-	char* fileName = "Lenna.pgm";
-	FILE* fileSource_;
-	if (fileSource_=fopen(fileName,"rb"))
+	const char* fileName = "Lenna.pgm";
+	FILE* fileSource_=fopen(fileName,"rb");
+	if (fileSource_)
 	{
 		ImageInfo info = getImageInfo(fileSource_);
 		changeToOpositeGrayAndSave(&info , "../Resources/oppsiteGrayForLenna.pgm");
@@ -262,16 +258,15 @@ void changeImage_1()
 
 void step3_CaculateDistace(char* fileFormat ,int fileCount)
 {
-	ImageInfo *imageArray_ = malloc(sizeof(ImageInfo)*fileCount);
-	int* isSuccess_ = malloc(sizeof(int)*fileCount);
-	int width,height=0;
+	ImageInfo *imageArray_ = (ImageInfo *)malloc(sizeof(ImageInfo)*fileCount);
+	int* isSuccess_ = (int *)malloc(sizeof(int)*fileCount);
 	for (int i = 0; i < fileCount; ++i)
 	{
 		char fileName_[40];
 		sprintf(fileName_,fileFormat,i);
-		FILE *file;
+		FILE *file=fopen(fileName_,"rb");
 		isSuccess_[i] = 0;
-		if (file=fopen(fileName_,"rb"))
+		if (file)
 		{
 			imageArray_[i] = getImageInfo(file);
 			normalizationForFile(&(imageArray_[i]));
@@ -290,7 +285,7 @@ void step3_CaculateDistace(char* fileFormat ,int fileCount)
 		if ((index>=0)&&(index < fileCount)&&(isSuccess_[i]==1)&&(isSuccess_[index]==1))
 		{
 			ImageInfo info0_ = imageArray_[0];
-			ImageInfo infoN_ = imageArray_[index];
+//			ImageInfo infoN_ = imageArray_[index];
 			printf("the distance between %d and %d is %1lf\n",index,i+1,caculateDistance(info0_.vectorArray_,info0_.vectorArray_,info0_.width_*info0_.height_));
 		}
 		
@@ -311,7 +306,7 @@ void step4_getAllHandWritting()
 	ImageFolderInfo testData_100   = readDataFromFolder("../Resources/test_image_100/d%d.pgm","../Resources/test_image_100/test_label_100.txt",100,0);
 	ImageFolderInfo testData_1000  = readDataFromFolder("../Resources/test_data_1000/d%d.pgm","../Resources/test_data_1000/test_label_1000.txt",1000,2000);
 
-	int seconds_1 = time((time_t*)NULL);
+	int seconds_1 = (int)time((time_t*)NULL);
     printf("Test Start  %d\n", seconds_1);
 
 	int correctTimes = 0;
@@ -336,7 +331,7 @@ void step4_getAllHandWritting()
 	rate = (double) correctTimes/testData_1000.fileCount_;
 	printf("1000 testData totaly correct times is %d rate is %f%%\n",correctTimes,rate*100);
 
-	int seconds_2 = time((time_t*)NULL);
+	int seconds_2 = (int)time((time_t*)NULL);
     printf("Test end  %d total %d \n", seconds_2,seconds_2-seconds_1);
 
 	freeImageFolderInfo(&trainData_2000);

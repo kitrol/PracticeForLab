@@ -56,7 +56,7 @@ void initFileSize(ImageInfo* info)
 	 	// printf("position is%dend\n",position-info->fileSize_ );
 		char* p;   
 		char* buffer;   
-		char* delims={" "};
+		const char* delims=" ";
 		buffer=info->fileSize_;  
 		p=strtok(buffer,delims);
 		info->width_ = atoi(p);
@@ -70,8 +70,8 @@ void initFileSize(ImageInfo* info)
 
 unsigned char* readAllFile(char* fileName)
 {
-	FILE* file;
-	if (file=fopen(fileName,"rb"))
+	FILE* file=fopen(fileName,"rb");
+	if (file)
 	{
 		long lSize;
 	    unsigned char * buffer;

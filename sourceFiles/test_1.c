@@ -29,7 +29,7 @@ char* getSpace(int number)
 	}
 	// printf("selfLength is %d   \n",selfLength);
 	int spaceLength = baseSpace - selfLength;
-	char *oringin = "              ";
+	const char *oringin = "              ";
 	char *space_ = (char*)malloc(sizeof(char)*spaceLength+1);
 	strncpy(space_, oringin,spaceLength);
 	space_[spaceLength] = '\0';
@@ -38,7 +38,7 @@ char* getSpace(int number)
 
 void getMatrix(int rows,int coulumes)
 {
-	int** temp = malloc(sizeof(int*)*rows);
+	int** temp = (int **)malloc(sizeof(int*)*rows);
 	for (int r = 0; r < rows; ++r)
 	{
 		temp[r] = (int*)malloc(sizeof(int)*coulumes);
@@ -62,14 +62,14 @@ void getMatrix(int rows,int coulumes)
 }
 
  
-int main(void)
-{
-    printf("Hello World!\n");
-    printf("the result of sum of 19, 123 is %ld \n", add(19,123));
-    // getMatrix(13,15);
-	// randomNum(20);
-    // changeImage_1();
-    // step3_CaculateDistace("../Resources/test_data/d%d.pgm",100);
-    step4_getAllHandWritting();
-    return 0;
-}
+//int main(void)
+//{
+//    printf("Hello World!\n");
+//    printf("the result of sum of 19, 123 is %ld \n", add(19,123));
+//    // getMatrix(13,15);
+//	// randomNum(20);
+//    // changeImage_1();
+//    // step3_CaculateDistace("../Resources/test_data/d%d.pgm",100);
+//    step4_getAllHandWritting();
+//    return 0;
+//}
