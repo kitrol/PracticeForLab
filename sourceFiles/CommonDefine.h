@@ -3,13 +3,17 @@
 #define FILECOUNT 100
 #endif
 
-#ifndef K
-#define K 3
-#endif
+//#ifndef K
+//#define K 1
+//#endif
+
+static int K = 1;
 
 #ifndef NUMBER_COUNT
 #define NUMBER_COUNT 10
 #endif
+
+#define ISHOWDETAILS 0
 
 typedef struct Image
 {

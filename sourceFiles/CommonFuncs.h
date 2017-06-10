@@ -41,7 +41,10 @@ void freeImageFolderInfo(ImageFolderInfo *info)
 {
 	for (int i = 0; i < info->fileCount_; ++i)
 	{
-		freeImageInfo(&(info->imageArray_[i]));
+        if (info->isSuccess_[i])
+        {
+            freeImageInfo(&(info->imageArray_[i]));
+        }
 	}
 	free(info->imageArray_);
 	free(info->numberLabel_);
@@ -93,7 +96,7 @@ unsigned char* readAllFile(char* fileName)
 	    }
 	    return buffer;
     }  
-    // printf("%s", buffer);   
+    // printf("%s",       );   
     fclose(file);
     return NULL;
 }

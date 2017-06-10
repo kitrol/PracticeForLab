@@ -9,6 +9,7 @@
 #include "CommonFuncs.h"
 #include "ProcessPGM.h"
 
+
 void randomNum(int times)
 {
 	srand((unsigned)time(NULL));

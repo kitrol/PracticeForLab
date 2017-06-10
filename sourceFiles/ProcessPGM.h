@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 // typedef void (*pointerFuncWithChar)(char* fileSize);
 
 //  avoid of reading annotate
 
 void getAttributeForPGM(char *dest,FILE *f);
-void changeToOpositeGrayAndSave(ImageInfo *info, char * newFileName);
+void changeToOpositeGrayAndSave(ImageInfo *info,const char * newFileName);
 
 ImageInfo getImageInfo(FILE *fileSource);
 void readImageData(FILE *fileSource,ImageInfo* info);
 void normalizationForFile(ImageInfo* source);
 
-ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,int fileCount, int fromNum);
+ImageFolderInfo readDataFromFolder(const char* fileFormat ,const char* realNumberFileName ,int fileCount, int fromNum);
 ImageFolderInfo getFolderInfo(int fileCount);
 
 int updataDistanceForImage(ImageInfo *info, ImageInfo *newTarget, double dis);
@@ -21,8 +22,6 @@ int showResultForTestImage(ImageInfo *info);
 void changeImage_1();
 void step3_CaculateDistace(char* fileFormat ,int fileCount);
 void step4_getAllHandWritting();
-
-
 
 
 void getAttributeForPGM(char *dest,FILE *f)
@@ -35,7 +34,7 @@ void getAttributeForPGM(char *dest,FILE *f)
 }
 
 
-void changeToOpositeGrayAndSave(ImageInfo *info, char * newFileName)
+void changeToOpositeGrayAndSave(ImageInfo *info,const char * newFileName)
 {
 	FILE* newFile_=fopen(newFileName,"wb");
 	if (newFile_)
@@ -86,7 +85,7 @@ void readImageData(FILE *fileSource,ImageInfo* info)
 	}
 }
 
-ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,int fileCount, int fromNum)  
+ImageFolderInfo readDataFromFolder(const char* fileFormat ,const char* realNumberFileName ,int fileCount, int fromNum)
 {
 	ImageFolderInfo folderInfo_ = getFolderInfo(fileCount);
 	folderInfo_.fileCount_ = fileCount;
@@ -95,10 +94,10 @@ ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,i
 	{
 		for (int i = 0; i < fileCount; ++i)
 		{
-			char number = fgetc(labelFile);
-			folderInfo_.numberLabel_[i] = atoi(&number);  /// number for 0 to 9 a char is enough
-			fgetc(labelFile);  ///  skip for '\n'
-			// printf("index is %d the number is  %d\n", i,folderInfo_.numberLabel_[i]);
+            char number[10];
+            fgets(number, 3, labelFile);  //char	*fgets(char * __restrict, int, FILE *); read n-1 chars from file
+			folderInfo_.numberLabel_[i] = atoi(&number[0]);  /// number for 0 to 9 a char is enough
+//			 printf("index is %d the number is  %d\n", i,folderInfo_.numberLabel_[i]);
 		}
 	}
 	fclose(labelFile);
@@ -113,12 +112,8 @@ ImageFolderInfo readDataFromFolder(char* fileFormat ,char* realNumberFileName ,i
 		{
 			folderInfo_.imageArray_[i] = getImageInfo(file);
 			folderInfo_.imageArray_[i].label_ = folderInfo_.numberLabel_[i];
-			// printf("index is %d the number is  %d\n", i,folderInfo_.imageArray_[i].label_);
 			normalizationForFile(&(folderInfo_.imageArray_[i]));
 			folderInfo_.isSuccess_[i] = 1;
-			// width = folderInfo_.imageArray_[i].width_;
-			// height = folderInfo_.imageArray_[i].height_;
-			// printf("imageName is %s width is %d height is %d \n",fileName_,width,height);
 		}
 		fclose(file);
 	}
@@ -132,6 +127,10 @@ ImageFolderInfo getFolderInfo(int fileCount)
 	Info.imageArray_= (ImageInfo *)malloc(sizeof(ImageInfo)*fileCount);
 	Info.numberLabel_ = (int *)malloc(sizeof(int)*fileCount);
 	Info.isSuccess_ = (int *)malloc(sizeof(int)*fileCount);
+    for (int index=0; index<fileCount; ++index)
+    {
+        Info.isSuccess_[index] = 0;
+    }
 	return Info;
 }
 
@@ -193,17 +192,12 @@ void caculateNearestKPoint(ImageInfo *info, ImageFolderInfo* trainDataInfo)
 			updataDistanceForImage(info,trainIamgeInfo,dis);
 		}
 	}
-	// for (int index = 0; index < K; ++index)
-	// {
-	// 	ImageInfo *savedTrainTarget = info->savedK_Point_[index];
-	// 	// printf(" new %.10lf    old    %.10lf  \n",dis, savedTrainTarget->distanceWithTestData_);
-	// 	printf("ccccccccc   index is %d label is %d dis is%.10lf  \n",index, savedTrainTarget->label_,savedTrainTarget->distanceWithTestData_);
-	// }
 }
 
 int showResultForTestImage(ImageInfo *info)
 {
 	int result[10] = {0,0,0,0,0,0,0,0,0,0};
+    double distance[10] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 	for (int i = 0; i < K; ++i)
 	{
 		ImageInfo* trainDataInfo = info->savedK_Point_[i];
@@ -214,6 +208,7 @@ int showResultForTestImage(ImageInfo *info)
 		}
 		int labelIndex = trainDataInfo->label_;
 		result[labelIndex] += 1;
+        distance[labelIndex] += trainDataInfo->distanceWithTestData_;
 	}
 
 	int maxCnt = 0;
@@ -225,20 +220,41 @@ int showResultForTestImage(ImageInfo *info)
 			maxCnt = result[i];
 			predictNum = i;
 		}
+        //// same mark count, select the nearest one
+        else if ((result[i]>0) && (result[i] == maxCnt) && (distance[i] < distance[predictNum]))
+        {
+            maxCnt = result[i];
+            predictNum = i;
+        }
 	}
 	// for (int i = 0; i < 10; ++i)
 	// {
 	// 	printf("count for index %d is %d\n",i, result[i]);
 	// }
-	char* isCorrect = "true";
 	int returnValue = 1;
 	if (info->label_ != predictNum)
 	{
-		isCorrect = "false";
 		returnValue = 0;
 	}
-	printf("when K is %d.real number for test data is %d and prediction is %d. is Correct %s \n",K,info->label_,predictNum,isCorrect);
+    if (ISHOWDETAILS)
+    {
+        printf("when K is %d.real number for test data is %d and prediction is %d. is Correct %s \n",K,info->label_,predictNum,returnValue>0?"true":"false");
+    }
+	
 	return returnValue;
+}
+
+void resetFolderData(ImageFolderInfo *info)
+{
+    for (int index = 0; index <info->fileCount_; ++index)
+    {
+        ImageInfo* target = &info->imageArray_[index];
+        target->distanceWithTestData_ = 0;
+        for (int j=0; j<30; ++j)
+        {
+            target->savedK_Point_[j] = NULL;
+        }
+    }
 }
 //////////////////////////////// FUNCTION CALL /////////////////////////////////////////////////////
 
@@ -271,9 +287,6 @@ void step3_CaculateDistace(char* fileFormat ,int fileCount)
 			imageArray_[i] = getImageInfo(file);
 			normalizationForFile(&(imageArray_[i]));
 			isSuccess_[i] = 1;
-			// width = imageArray_[i].width_;
-			// height = imageArray_[i].height_ ;
-			// printf("imageName is %s width is %d height is %d \n",fileName_,imageArray_[i].width_,imageArray_[i].height_ );
 		}
 	}
 	int index = 0;
@@ -306,35 +319,73 @@ void step4_getAllHandWritting()
 	ImageFolderInfo testData_100   = readDataFromFolder("../Resources/test_image_100/d%d.pgm","../Resources/test_image_100/test_label_100.txt",100,0);
 	ImageFolderInfo testData_1000  = readDataFromFolder("../Resources/test_data_1000/d%d.pgm","../Resources/test_data_1000/test_label_1000.txt",1000,2000);
 
-	int seconds_1 = (int)time((time_t*)NULL);
+    float rateFor100[20] = {0};
+    float rateFor1000[20] = {0};
+    
+    int seconds_1 = (int)time((time_t*)NULL);
     printf("Test Start  %d\n", seconds_1);
+    for (int t=0; t<20; ++t)
+    {
+        printf("K is %d \n",K);
+        int correctTimes = 0;
+        
+        for (int i = 0; i < testData_100.fileCount_; ++i)
+        {
+            ImageInfo info = testData_100.imageArray_[i];
+            caculateNearestKPoint(&info,&trainData_2000);
+            int result = showResultForTestImage(&info);
+            correctTimes += result;
+        }
+        
+        
+        double rate = (double) correctTimes/testData_100.fileCount_;
+        printf("100 testData totaly correct times is %d rate is %f%%\n\n\n",correctTimes,rate*100);
+        rateFor100[t] = rate;
+        
+        printf("Start test data 1000 with train data \n\n\n");
+        correctTimes = 0;
+        
+        
+        for (int i = 0; i < testData_1000.fileCount_; ++i)
+        {
+            ImageInfo info = testData_1000.imageArray_[i];
+            caculateNearestKPoint(&info,&trainData_2000);
+            int result = showResultForTestImage(&info);
+            correctTimes += result;
+        }
+        
+        rate = (double) correctTimes/testData_1000.fileCount_;
+        printf("1000 testData totaly correct times is %d rate is %f%%\n",correctTimes,rate*100);
+        rateFor1000[t] = rate;
+        
+        resetFolderData(&trainData_2000);
+        resetFolderData(&testData_100);
+        resetFolderData(&testData_1000);
+        K = K+1;
+    }
+    
+    FILE* resultFile=fopen("../Resources/testReslut.txt","wb");
+    if (resultFile)
+    {
+        for (int index = 0; index <20; ++index)
+        {
+            float rate100_ = rateFor100[index];
+            float rate1000_ = rateFor1000[index];
+            const char* form = "%f,%f\n";
+            char fileName_[120];
+            sprintf(fileName_,form,rate100_,rate1000_);
+            fputs(fileName_, resultFile);
+        }
+    }
+    fclose(resultFile);
+    
 
-	int correctTimes = 0;
-	for (int i = 0; i < testData_100.fileCount_; ++i)
-	{
-		ImageInfo info = testData_100.imageArray_[i];
-		caculateNearestKPoint(&info,&trainData_2000);
-		int result = showResultForTestImage(&info);
-		correctTimes += result;
-	}
-	double rate = (double) correctTimes/testData_100.fileCount_;
-	printf("100 testData totaly correct times is %d rate is %f%%\n",correctTimes,rate*100);
-
-	correctTimes = 0;
-	for (int i = 0; i < testData_1000.fileCount_; ++i)
-	{
-		ImageInfo info = testData_1000.imageArray_[i];
-		caculateNearestKPoint(&info,&trainData_2000);
-		int result = showResultForTestImage(&info);
-		correctTimes += result;
-	}
-	rate = (double) correctTimes/testData_1000.fileCount_;
-	printf("1000 testData totaly correct times is %d rate is %f%%\n",correctTimes,rate*100);
+    printf("Start test data 100 with train data\n\n\n");
 
 	int seconds_2 = (int)time((time_t*)NULL);
-    printf("Test end  %d total %d \n", seconds_2,seconds_2-seconds_1);
+    printf("Total time cost %d \n",seconds_2-seconds_1);
 
-	freeImageFolderInfo(&trainData_2000);
+	freeImageFolderInfo(&trainData_2000);  /// free memory
 	freeImageFolderInfo(&testData_100);
 	freeImageFolderInfo(&testData_1000);
 }
