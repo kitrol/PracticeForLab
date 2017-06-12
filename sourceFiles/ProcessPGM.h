@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef ImageProcessTest_ProcessPGM_h
+#define ImageProcessTest_ProcessPGM_h
+
 // typedef void (*pointerFuncWithChar)(char* fileSize);
 
 //  avoid of reading annotate
@@ -76,9 +79,9 @@ void readImageData(FILE *fileSource,ImageInfo* info)
 	{
 		info->imageData_[r] = (unsigned char*)malloc(sizeof(unsigned char)*info->height_);
 	}
-	for (int i = 0; i < info->width_; ++i)
+	for (int j = 0; j < info->height_; ++j)
 	{
-		for (int j = 0; j < info->height_; ++j)
+        for (int i = 0; i < info->width_; ++i)
 		{
 			info->imageData_[i][j] = fgetc(fileSource);
 		}
@@ -390,4 +393,4 @@ void step4_getAllHandWritting()
 	freeImageFolderInfo(&testData_1000);
 }
 
-
+#endif

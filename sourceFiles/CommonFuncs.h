@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#ifndef ImageProcessTest_CommonFuncs_h
+#define ImageProcessTest_CommonFuncs_h
 long int add(int x1, int x2)
 {
 	return (long int)(x1+x2);
@@ -102,5 +104,5 @@ unsigned char* readAllFile(char* fileName)
 }
 
 
-
+#endif
 

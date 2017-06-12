@@ -8,6 +8,7 @@
 #include "CommonDefine.h"
 #include "CommonFuncs.h"
 #include "ProcessPGM.h"
+#include "ProcessAllInOnePGM.h"
 
 
 void randomNum(int times)

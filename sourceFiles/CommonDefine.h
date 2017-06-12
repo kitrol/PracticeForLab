@@ -1,3 +1,5 @@
+#ifndef ImageProcessTest_CommonDefine_h
+#define ImageProcessTest_CommonDefine_h
 
 #ifndef FILECOUNT
 #define FILECOUNT 100
@@ -12,6 +14,8 @@ static int K = 1;
 #ifndef NUMBER_COUNT
 #define NUMBER_COUNT 10
 #endif
+
+#define NOISE_SIZE 25
 
 #define ISHOWDETAILS 0
 
@@ -42,3 +46,20 @@ typedef struct ImageFolderInfo
 	int fileCount_;
 
 }ImageFolderInfo;
+
+typedef struct
+{
+    int x;
+    int y;
+}Pos;
+
+typedef struct
+{
+    int x;
+    int y;
+    int width;
+    int height;
+}Rect;
+
+
+#endif
