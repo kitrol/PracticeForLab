@@ -11,6 +11,7 @@
 static ImageInfo *imageInfo_ = NULL;
 
 #include "ProcessPGM.h"
+#include <stdio.h>
 void step5();
 
 //// first round
@@ -27,6 +28,12 @@ int getRidOfNoise(int** originMatrix,int width,int height);
 ///// separate region
 Rect* getRegions(int** originMatrix,int width,int height,int regions);
 
+
+////  Separate
+void separateOrigion(ImageInfo *imageInfo,int** markMatrix,Rect* regionsArray, int regions);
+
+//// Scale
+void scalePicTo(ImageInfo *sourceInfo,const char* destFileName,float scaleX,float scaleY);
 
 int saveDebugFile(int** dataSource,int width,int height, const char* fileName);
 //
@@ -59,9 +66,9 @@ void step5()
         {
             for (int line=0; line<allInOne.width_; ++line)
             {
-                allInOne.imageData_[line][row] = allInOne.color_ - allInOne.imageData_[line][row];
-                markMatrix[line][row] = (int)allInOne.imageData_[line][row]==0?0:1; /// int
-                fputc(allInOne.imageData_[line][row]!=0?'1':'0',outPut);// char
+//                allInOne.imageData_[line][row] = allInOne.color_ - allInOne.imageData_[line][row];
+                markMatrix[line][row] = (int)allInOne.imageData_[line][row]==255?0:1; /// int
+                fputc(allInOne.imageData_[line][row]==255?'1':'0',outPut);// char
             }
             fputs("\n", outPut);
         }
@@ -79,12 +86,13 @@ void step5()
     printf("First Label %d Noise Count %d Final Label %d\n",firstLabelCnt,noiseCnt,secondLabelCnt);
     
     Rect* regions = getRegions(markMatrix,allInOne.width_,allInOne.height_,secondLabelCnt);
+    separateOrigion(imageInfo_,markMatrix,regions, secondLabelCnt);
+//    for (int mark=0; mark<secondLabelCnt; ++mark)
+//    {
+//        Rect region = regions[mark];
+//        printf("For region %d x %d y %d width %d height %d\n",mark,region.x,region.y,region.width,region.height);
+//    }
     
-    for (int mark=0; mark<secondLabelCnt; ++mark)
-    {
-        Rect region = regions[mark];
-        printf("For region %d x %d y %d width %d height %d\n",mark,region.x,region.y,region.width,region.height);
-    }
     /////   free Memory
     free(regions);
     for (int index = 0; index<allInOne.width_; ++index)
@@ -437,18 +445,10 @@ Rect* getRegions(int** originMatrix,int width,int height,int regions)
     for (int index = 0; index <regions; ++index)
     {
                            ////// minx miny maxx maxy
-		Rect rect = { boundary,boundary,0,0 };
-
-        //rectArray[index] = (Rect){boundary,boundary,0,0};
-		rectArray[index] = rect;
+        Rect rect = {boundary,boundary,0,0};
+        rectArray[index] = rect;
+        // rectArray[index] = (Rect){boundary,boundary,0,0};
     }
-//    typedef struct
-//    {
-//        int x;
-//        int y;
-//        int width;
-//        int height;
-//    }Rect;
     for (int j=0; j<height; j++)
     {
         for (int i=0; i<width; i++)
@@ -488,5 +488,40 @@ Rect* getRegions(int** originMatrix,int width,int height,int regions)
     
     return rectArray;
 }
+
+void separateOrigion(ImageInfo *imageInfo,int** markMatrix,Rect* regionsArray, int regions)
+{
+    for (int mark=0; mark<regions; ++mark)
+    {
+        Rect region = regionsArray[mark];
+//        if ( (region.width >= MAX_WIDTH_HEIGHT) || (region.height >= MAX_WIDTH_HEIGHT))
+//        {
+//            
+//        
+//        }
+        printf("For region %d x %d y %d width %d height %d\n",mark,region.x,region.y,region.width,region.height);
+        const char* form = "../Resources/contest_%d.pgm";
+        char fileName_[120];
+        sprintf(fileName_,form,(mark+1));
+        FILE* outPut = fopen(fileName_,"wb");
+        if (outPut)
+        {
+            fprintf(outPut,"%s","P5\n");
+            fprintf(outPut,"%d %d\n",region.width,region.height);
+            fprintf(outPut,"%d\n",255);
+            for (int y=region.y; y<(region.y+region.height); ++y)
+            {
+                for (int x=region.x; x<(region.x+region.width); ++x)
+                {
+                    ////  avoiding add noise data inside
+                    markMatrix[x][y]>0?(imageInfo->imageData_[x][y]<=200?fputc(imageInfo->imageData_[x][y],outPut):fputc(255,outPut)):fputc(255,outPut);
+                }
+            }
+        }
+        fclose(outPut);
+        
+    }
+}
+
 
 #endif

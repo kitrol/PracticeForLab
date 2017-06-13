@@ -19,6 +19,8 @@ static int K = 1;
 
 #define ISHOWDETAILS 0
 
+#define MAX_WIDTH_HEIGHT 30
+
 typedef struct Image
 {
 	char fileType_[128];
