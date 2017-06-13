@@ -437,7 +437,10 @@ Rect* getRegions(int** originMatrix,int width,int height,int regions)
     for (int index = 0; index <regions; ++index)
     {
                            ////// minx miny maxx maxy
-        rectArray[index] = (Rect){boundary,boundary,0,0};
+		Rect rect = { boundary,boundary,0,0 };
+
+        //rectArray[index] = (Rect){boundary,boundary,0,0};
+		rectArray[index] = rect;
     }
 //    typedef struct
 //    {
